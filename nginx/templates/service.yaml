@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "nginx.fullname" . }}
+  namespace: devnaveen
+  labels:
+    app.kubernetes.io/name: {{ include "nginx.name" . }}
+    helm.sh/chart: {{ include "nginx.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: {{ include "nginx.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app: nginx
+
+---
+kind: NetworkPolicy
+apiVersion: extensions/v1beta1
+metadata:
+  name: webui-networkpolicy
+  namespace: devnaveen
+spec:
+  podSelector:
+    matchLabels:
+      app: nginx
+  ingress:
+    - ports:
+      - port: 80
+        protocol: TCP
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            name: ingress
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: webui-ingress
+  namespace: devnaveen
+  annotations:
+    traefik.ingress.kubernetes.io/rule-type: PathPrefixStrip
+    ingress.kubernetes.io/content-type-nosniff: "true"
+    traefik.ingress.kubernetes.io/affinity: "true"
+    traefik.ingress.kubernetes.io/session-cookie-name: "traefikcookie"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /lab1
+        backend:
+          serviceName:  {{ include "nginx.fullname" . }}
+          servicePort: 80

@@ -1,0 +1,15 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: ingress
+  labels:
+    name: ingress
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: devnaveen
+  labels:
+    name: devnaveen
+---
+
